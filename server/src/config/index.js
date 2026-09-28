@@ -17,3 +17,10 @@ export const CORS_OPTIONS = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
+
+// Секретный ключ для подписи JWT-токенов
+// В production используйте переменную окружения JWT_SECRET
+export const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production';
+
+// Время жизни JWT-токена (7 дней)
+export const JWT_EXPIRES_IN = '7d';

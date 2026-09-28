@@ -3,6 +3,7 @@ import cors from 'cors';
 import { CORS_OPTIONS } from './config/index.js';
 
 // Импорт роутов
+import authRouter from './routes/auth.js';
 import incomesRouter from './routes/incomes.js';
 import expensesRouter from './routes/expenses.js';
 import summaryRouter from './routes/summary.js';
@@ -25,6 +26,7 @@ app.get('/health', (req, res) => {
 });
 
 // Регистрируем роуты API под префиксом /api/v1/
+app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/incomes', incomesRouter);
 app.use('/api/v1/expenses', expensesRouter);
 app.use('/api/v1/summary', summaryRouter);

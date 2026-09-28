@@ -1,24 +1,28 @@
 import { Router } from 'express';
 import * as incomeController from '../controllers/incomeController.js';
 import { validateTransactionMiddleware } from '../middleware/validate.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
 
+// Все роуты доходов требуют авторизации
+router.use(authenticate);
+
 /**
  * GET /api/v1/incomes
- * Получить все доходы с пагинацией и фильтрами
+ * Получить все доходы пользователя с пагинацией и фильтрами
  */
 router.get('/', incomeController.getAllIncomes);
 
 /**
  * GET /api/v1/incomes/:id
- * Получить доход по ID
+ * Получить доход пользователя по ID
  */
 router.get('/:id', incomeController.getIncomeById);
 
 /**
  * POST /api/v1/incomes
- * Создать новый доход
+ * Создать новый доход для пользователя
  */
 router.post(
   '/',
@@ -28,7 +32,7 @@ router.post(
 
 /**
  * PUT /api/v1/incomes/:id
- * Обновить существующий доход
+ * Обновить существующий доход пользователя
  */
 router.put(
   '/:id',
@@ -38,7 +42,7 @@ router.put(
 
 /**
  * DELETE /api/v1/incomes/:id
- * Удалить доход по ID
+ * Удалить доход пользователя по ID
  */
 router.delete('/:id', incomeController.deleteIncome);
 

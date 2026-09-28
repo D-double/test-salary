@@ -1,14 +1,15 @@
 import * as incomeService from '../services/incomeService.js';
 
 /**
- * Получить все доходы с пагинацией и фильтрами
+ * Получить все доходы пользователя с пагинацией и фильтрами
  * GET /api/v1/incomes
  */
 export async function getAllIncomes(req, res, next) {
   try {
+    const userId = req.user.userId;
     const { page, limit, category, dateFrom, dateTo } = req.query;
 
-    const result = await incomeService.getAllIncomes({
+    const result = await incomeService.getAllIncomes(userId, {
       page: Number(page),
       limit: Number(limit),
       category,
@@ -23,14 +24,15 @@ export async function getAllIncomes(req, res, next) {
 }
 
 /**
- * Получить доход по ID
+ * Получить доход пользователя по ID
  * GET /api/v1/incomes/:id
  */
 export async function getIncomeById(req, res, next) {
   try {
+    const userId = req.user.userId;
     const { id } = req.params;
 
-    const income = await incomeService.getIncomeById(id);
+    const income = await incomeService.getIncomeById(userId, id);
 
     if (!income) {
       const error = new Error(`Доход с id=${id} не найден`);
@@ -46,14 +48,15 @@ export async function getIncomeById(req, res, next) {
 }
 
 /**
- * Создать новый доход
+ * Создать новый доход для пользователя
  * POST /api/v1/incomes
  */
 export async function createIncome(req, res, next) {
   try {
+    const userId = req.user.userId;
     const { amount, date, category, comment } = req.body;
 
-    const newIncome = await incomeService.createIncome({
+    const newIncome = await incomeService.createIncome(userId, {
       amount,
       date,
       category,
@@ -67,15 +70,16 @@ export async function createIncome(req, res, next) {
 }
 
 /**
- * Обновить существующий доход
+ * Обновить существующий доход пользователя
  * PUT /api/v1/incomes/:id
  */
 export async function updateIncome(req, res, next) {
   try {
+    const userId = req.user.userId;
     const { id } = req.params;
     const { amount, date, category, comment } = req.body;
 
-    const updatedIncome = await incomeService.updateIncome(id, {
+    const updatedIncome = await incomeService.updateIncome(userId, id, {
       amount,
       date,
       category,
@@ -96,14 +100,15 @@ export async function updateIncome(req, res, next) {
 }
 
 /**
- * Удалить доход по ID
+ * Удалить доход пользователя по ID
  * DELETE /api/v1/incomes/:id
  */
 export async function deleteIncome(req, res, next) {
   try {
+    const userId = req.user.userId;
     const { id } = req.params;
 
-    const deleted = await incomeService.deleteIncome(id);
+    const deleted = await incomeService.deleteIncome(userId, id);
 
     if (!deleted) {
       const error = new Error(`Доход с id=${id} не найден`);

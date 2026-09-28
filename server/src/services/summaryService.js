@@ -2,14 +2,21 @@ import { getDb } from '../db/connection.js';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../utils/categories.js';
 
 /**
- * Получить общий баланс (сумма доходов, расходов и разницу)
+ * Получить общий баланс пользователя (сумма доходов, расходов и разницу)
+ * @param {string} userId - ID пользователя
  * @returns {Promise<Object>} { totalIncome, totalExpense, balance }
  */
-export async function getBalance() {
+export async function getBalance(userId) {
   const db = getDb();
 
-  const incomeRow = await db.get('SELECT COALESCE(SUM(amount), 0) as total FROM incomes');
-  const expenseRow = await db.get('SELECT COALESCE(SUM(amount), 0) as total FROM expenses');
+  const incomeRow = await db.get(
+    'SELECT COALESCE(SUM(amount), 0) as total FROM incomes WHERE user_id = ?',
+    [userId]
+  );
+  const expenseRow = await db.get(
+    'SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE user_id = ?',
+    [userId]
+  );
 
   const totalIncome = incomeRow.total;
   const totalExpense = expenseRow.total;
@@ -23,21 +30,22 @@ export async function getBalance() {
 }
 
 /**
- * Получить сумму по категориям (для круговой диаграммы)
+ * Получить сумму по категориям пользователя (для круговой диаграммы)
+ * @param {string} userId - ID пользователя
  * @param {string} type - тип операции ('income' или 'expense')
  * @param {Object} options - параметры фильтрации
  * @param {string} options.dateFrom - дата от (YYYY-MM-DD)
  * @param {string} options.dateTo - дата до (YYYY-MM-DD)
  * @returns {Promise<Array>} массив объектов { category, label, total }
  */
-export async function getByCategory(type = 'expense', options = {}) {
+export async function getByCategory(userId, type = 'expense', options = {}) {
   const db = getDb();
   const table = type === 'income' ? 'incomes' : 'expenses';
   const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
-  // Формируем условия WHERE
-  const conditions = [];
-  const params = [];
+  // Формируем условия WHERE (всегда фильтруем по user_id)
+  const conditions = ['user_id = ?'];
+  const params = [userId];
 
   if (options.dateFrom) {
     conditions.push('date >= ?');
@@ -48,7 +56,7 @@ export async function getByCategory(type = 'expense', options = {}) {
     params.push(options.dateTo);
   }
 
-  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  const whereClause = `WHERE ${conditions.join(' AND ')}`;
 
   // Группируем по категориям
   const rows = await db.all(
@@ -71,33 +79,36 @@ export async function getByCategory(type = 'expense', options = {}) {
 }
 
 /**
- * Получить помесячную статистику (для столбчатого графика)
+ * Получить помесячную статистику пользователя (для столбчатого графика)
+ * @param {string} userId - ID пользователя
  * @param {Object} options - параметры фильтрации
  * @param {number} options.months - количество последних месяцев (по умолчанию 6)
  * @returns {Promise<Array>} массив объектов { month, income, expense }
  */
-export async function getByMonth(options = {}) {
+export async function getByMonth(userId, options = {}) {
   const db = getDb();
   const months = Math.max(1, Math.min(24, Number(options.months) || 6));
 
-  // Получаем доходы по месяцам
+  // Получаем доходы пользователя по месяцам
   const incomeRows = await db.all(
     `SELECT strftime('%Y-%m', date) as month, SUM(amount) as total
      FROM incomes
+     WHERE user_id = ?
      GROUP BY month
      ORDER BY month DESC
      LIMIT ?`,
-    [months]
+    [userId, months]
   );
 
-  // Получаем расходы по месяцам
+  // Получаем расходы пользователя по месяцам
   const expenseRows = await db.all(
     `SELECT strftime('%Y-%m', date) as month, SUM(amount) as total
      FROM expenses
+     WHERE user_id = ?
      GROUP BY month
      ORDER BY month DESC
      LIMIT ?`,
-    [months]
+    [userId, months]
   );
 
   // Формируем словарь для быстрого доступа

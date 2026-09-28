@@ -1,14 +1,15 @@
 import * as expenseService from '../services/expenseService.js';
 
 /**
- * Получить все расходы с пагинацией и фильтрами
+ * Получить все расходы пользователя с пагинацией и фильтрами
  * GET /api/v1/expenses
  */
 export async function getAllExpenses(req, res, next) {
   try {
+    const userId = req.user.userId;
     const { page, limit, category, dateFrom, dateTo, isRecurring } = req.query;
 
-    const result = await expenseService.getAllExpenses({
+    const result = await expenseService.getAllExpenses(userId, {
       page: Number(page),
       limit: Number(limit),
       category,
@@ -24,14 +25,15 @@ export async function getAllExpenses(req, res, next) {
 }
 
 /**
- * Получить расход по ID
+ * Получить расход пользователя по ID
  * GET /api/v1/expenses/:id
  */
 export async function getExpenseById(req, res, next) {
   try {
+    const userId = req.user.userId;
     const { id } = req.params;
 
-    const expense = await expenseService.getExpenseById(id);
+    const expense = await expenseService.getExpenseById(userId, id);
 
     if (!expense) {
       const error = new Error(`Расход с id=${id} не найден`);
@@ -47,14 +49,15 @@ export async function getExpenseById(req, res, next) {
 }
 
 /**
- * Создать новый расход
+ * Создать новый расход для пользователя
  * POST /api/v1/expenses
  */
 export async function createExpense(req, res, next) {
   try {
+    const userId = req.user.userId;
     const { amount, date, category, comment, isRecurring } = req.body;
 
-    const newExpense = await expenseService.createExpense({
+    const newExpense = await expenseService.createExpense(userId, {
       amount,
       date,
       category,
@@ -69,15 +72,16 @@ export async function createExpense(req, res, next) {
 }
 
 /**
- * Обновить существующий расход
+ * Обновить существующий расход пользователя
  * PUT /api/v1/expenses/:id
  */
 export async function updateExpense(req, res, next) {
   try {
+    const userId = req.user.userId;
     const { id } = req.params;
     const { amount, date, category, comment, isRecurring } = req.body;
 
-    const updatedExpense = await expenseService.updateExpense(id, {
+    const updatedExpense = await expenseService.updateExpense(userId, id, {
       amount,
       date,
       category,
@@ -99,14 +103,15 @@ export async function updateExpense(req, res, next) {
 }
 
 /**
- * Удалить расход по ID
+ * Удалить расход пользователя по ID
  * DELETE /api/v1/expenses/:id
  */
 export async function deleteExpense(req, res, next) {
   try {
+    const userId = req.user.userId;
     const { id } = req.params;
 
-    const deleted = await expenseService.deleteExpense(id);
+    const deleted = await expenseService.deleteExpense(userId, id);
 
     if (!deleted) {
       const error = new Error(`Расход с id=${id} не найден`);
